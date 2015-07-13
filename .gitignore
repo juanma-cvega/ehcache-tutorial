@@ -14,3 +14,7 @@ hs_err_pid*
 *.idea
 *.clover
 *.iml
+/target/
+*.project
+*.settings
+.*classpath

@@ -1,14 +1,19 @@
 package com.jusoft.ehcache.tutorial.dao;
 
-import org.junit.*;
-import org.junit.runner.*;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.cache.Cache;
-
 import static com.jusoft.ehcache.tutorial.util.Fixtures.DEFAULT_CUSTOMER;
-import static org.mockito.Mockito.verify;
+import static com.jusoft.ehcache.tutorial.util.Fixtures.DEFAULT_CUSTOMER_ID;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.isNull;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import com.jusoft.ehcache.tutorial.model.Customer;
 
 /**
  * Created by carnicj on 13/07/2015.
@@ -16,18 +21,45 @@ import static org.mockito.Mockito.verify;
 @RunWith(MockitoJUnitRunner.class)
 public class CustomerDaoImplUTest {
 
-   @Mock
-   private Cache mockCache;
-
-   @InjectMocks
+   private static final String NEW_NAME = "new name";
+   private static final String NEW_SURNAME = "new surname";
+   
    private CustomerDao customerDao = new CustomerDaoImpl();
-//   private S mockStore;
 
    @Test
-   public void testSaveStoresInCacheAndStore() {
-      final Long customerSaved = customerDao.save(DEFAULT_CUSTOMER);
-
-      verify(mockCache).get(DEFAULT_CUSTOMER.getId());
-//      verify(mockStore)
+   public void testSave() {
+      final Long id = customerDao.save(DEFAULT_CUSTOMER);
+      
+      Customer customer = customerDao.find(id);
+      
+      assertThat(customer, is(DEFAULT_CUSTOMER));
+   }
+   
+   @Test
+   public void testFind() {
+	   Long id = customerDao.save(DEFAULT_CUSTOMER);
+	   Customer customer = customerDao.find(id);
+	   
+	   assertThat(customer, is(DEFAULT_CUSTOMER));
+   }
+   
+   @Test
+   public void testUpdate() {
+		Customer newCustomer = new Customer(DEFAULT_CUSTOMER_ID, NEW_NAME, NEW_SURNAME);
+		boolean update = customerDao.update(newCustomer);
+		
+		assertTrue(update);
+		Customer storedCustomer = customerDao.find(DEFAULT_CUSTOMER_ID);
+		assertThat(storedCustomer, is(newCustomer));
+   }
+   
+   @Test
+   public void testDelete() {
+	   Long id = customerDao.save(DEFAULT_CUSTOMER);
+	   boolean customerRemoved = customerDao.remove(id);
+	   
+	   assertTrue(customerRemoved);
+	   Customer customer = customerDao.find(id);
+	   assertThat(customer, is(nullValue()));
    }
 }

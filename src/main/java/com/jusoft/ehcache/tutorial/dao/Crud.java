@@ -7,11 +7,13 @@ import java.io.Serializable;
 /**
  * Created by carnicj on 13/07/2015.
  */
-public interface Crud<T extends Entity, ID extends Serializable> {
+public interface Crud<T extends Entity<ID>, ID extends Serializable> {
 
    ID save(T objectToSave);
 
    boolean update(T objectToUpdate);
 
    boolean remove(ID id);
+   
+   T find(ID id);
 }
