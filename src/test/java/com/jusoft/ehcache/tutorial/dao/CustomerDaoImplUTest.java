@@ -1,23 +1,16 @@
 package com.jusoft.ehcache.tutorial.dao;
 
-import static com.jusoft.ehcache.tutorial.util.Fixtures.DEFAULT_CUSTOMER;
-import static com.jusoft.ehcache.tutorial.util.Fixtures.DEFAULT_CUSTOMER_ID;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.isNull;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
+import com.jusoft.ehcache.tutorial.model.Customer;
+import org.junit.*;
+import org.junit.runner.*;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.jusoft.ehcache.tutorial.model.Customer;
+import static com.googlecode.catchexception.CatchException.*;
+import static com.jusoft.ehcache.tutorial.util.Fixtures.DEFAULT_CUSTOMER;
+import static com.jusoft.ehcache.tutorial.util.Fixtures.DEFAULT_CUSTOMER_ID;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
-/**
- * Created by carnicj on 13/07/2015.
- */
 @RunWith(MockitoJUnitRunner.class)
 public class CustomerDaoImplUTest {
 
@@ -27,20 +20,27 @@ public class CustomerDaoImplUTest {
    private CustomerDao customerDao = new CustomerDaoImpl();
 
    @Test
-   public void testSave() {
-      final Long id = customerDao.save(DEFAULT_CUSTOMER);
-      
-      Customer customer = customerDao.find(id);
+   public void testSaveStoresCustomer() {
+      customerDao.save(DEFAULT_CUSTOMER);
+
+      Customer customer = customerDao.find(DEFAULT_CUSTOMER.getId());
       
       assertThat(customer, is(DEFAULT_CUSTOMER));
+   }
+
+   @Test
+   public void testSaveThrowsExceptionWhenCustomerIsNull() {
+      catchException(customerDao).save(null);
+
+      assertThat(caughtException(), instanceOf(IllegalArgumentException.class));
    }
    
    @Test
    public void testFind() {
-	   Long id = customerDao.save(DEFAULT_CUSTOMER);
-	   Customer customer = customerDao.find(id);
-	   
-	   assertThat(customer, is(DEFAULT_CUSTOMER));
+      customerDao.save(DEFAULT_CUSTOMER);
+      Customer customer = customerDao.find(DEFAULT_CUSTOMER.getId());
+
+      assertThat(customer, is(DEFAULT_CUSTOMER));
    }
    
    @Test
@@ -54,12 +54,21 @@ public class CustomerDaoImplUTest {
    }
    
    @Test
-   public void testDelete() {
-	   Long id = customerDao.save(DEFAULT_CUSTOMER);
-	   boolean customerRemoved = customerDao.remove(id);
-	   
-	   assertTrue(customerRemoved);
-	   Customer customer = customerDao.find(id);
-	   assertThat(customer, is(nullValue()));
+   public void testDeleteWhenElementExists() {
+      customerDao.save(DEFAULT_CUSTOMER);
+      boolean customerRemoved = customerDao.remove(DEFAULT_CUSTOMER.getId());
+
+      assertTrue(customerRemoved);
+      Customer customer = customerDao.find(DEFAULT_CUSTOMER.getId());
+      assertThat(customer, is(nullValue()));
+   }
+
+   @Test
+   public void testDeleteWhenElementDoesntExist() {
+      boolean customerRemoved = customerDao.remove(DEFAULT_CUSTOMER_ID);
+
+      assertFalse(customerRemoved);
+      Customer customer = customerDao.find(DEFAULT_CUSTOMER_ID);
+      assertThat(customer, is(nullValue()));
    }
 }

@@ -1,6 +1,7 @@
 package com.jusoft.ehcache.tutorial.config;
 
 import net.sf.ehcache.config.CacheConfiguration;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.annotation.EnableCaching;
@@ -10,17 +11,16 @@ import org.springframework.cache.interceptor.CacheResolver;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.cache.interceptor.SimpleKeyGenerator;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Created by carnicj on 13/07/2015.
- */
 @Configuration
+@ComponentScan("com.jusoft")
 @EnableCaching
 public class CacheConfig implements CachingConfigurer {
 
    @Bean(destroyMethod = "shutdown")
-   public net.sf.ehcache.CacheManager getEhCacheManager() {
+   public net.sf.ehcache.CacheManager ehCacheManager() {
       return net.sf.ehcache.CacheManager.newInstance(getCacheConfiguration());
    }
 
@@ -30,9 +30,14 @@ public class CacheConfig implements CachingConfigurer {
       return new EhCacheCacheManager(net.sf.ehcache.CacheManager.newInstance(getCacheConfiguration()));
    }
 
+   @Bean
+   public Cache customerCache() {
+      return cacheManager().getCache("customer");
+   }
+
    private net.sf.ehcache.config.Configuration getCacheConfiguration() {
       CacheConfiguration cacheConfiguration = new CacheConfiguration();
-      cacheConfiguration.setName("myCacheName");
+      cacheConfiguration.setName("customer");
       cacheConfiguration.setMemoryStoreEvictionPolicy("LRU");
       cacheConfiguration.setMaxEntriesLocalHeap(1000);
 

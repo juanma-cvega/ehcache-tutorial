@@ -2,9 +2,6 @@ package com.jusoft.ehcache.tutorial.util;
 
 import com.jusoft.ehcache.tutorial.model.Customer;
 
-/**
- * Created by carnicj on 13/07/2015.
- */
 public final class Fixtures {
    private Fixtures() {
    }
