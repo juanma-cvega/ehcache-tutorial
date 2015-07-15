@@ -1,6 +1,7 @@
 package com.jusoft.ehcache.tutorial.config;
 
-import net.sf.ehcache.config.CacheConfiguration;
+import static net.sf.ehcache.store.MemoryStoreEvictionPolicy.MemoryStoreEvictionPolicyEnum.LRU;
+
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurer;
@@ -14,49 +15,56 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import net.sf.ehcache.config.CacheConfiguration;
+
 @Configuration
 @ComponentScan("com.jusoft")
 @EnableCaching
 public class CacheConfig implements CachingConfigurer {
 
-   @Bean(destroyMethod = "shutdown")
-   public net.sf.ehcache.CacheManager ehCacheManager() {
-      return net.sf.ehcache.CacheManager.newInstance(getCacheConfiguration());
-   }
+	private static final int MAXIMUM_ENTRIES_LOCAL_HEAP = 1000;
+	private static final String CUSTOMER_CACHED_NAME = "customer";
 
-   @Override
-   @Bean
-   public CacheManager cacheManager() {
-      return new EhCacheCacheManager(net.sf.ehcache.CacheManager.newInstance(getCacheConfiguration()));
-   }
+	@Bean(destroyMethod = "shutdown")
+	public net.sf.ehcache.CacheManager ehCacheManager() {
+		return net.sf.ehcache.CacheManager.newInstance(getCacheConfiguration());
+	}
 
-   @Bean
-   public Cache customerCache() {
-      return cacheManager().getCache("customer");
-   }
+	@Override
+	@Bean
+	public CacheManager cacheManager() {
+		return new EhCacheCacheManager(net.sf.ehcache.CacheManager.newInstance(getCacheConfiguration()));
+	}
 
-   private net.sf.ehcache.config.Configuration getCacheConfiguration() {
-      CacheConfiguration cacheConfiguration = new CacheConfiguration();
-      cacheConfiguration.setName("customer");
-      cacheConfiguration.setMemoryStoreEvictionPolicy("LRU");
-      cacheConfiguration.setMaxEntriesLocalHeap(1000);
+	@Bean
+	public Cache customerCache() {
+		return cacheManager().getCache(CUSTOMER_CACHED_NAME);
+	}
 
-      net.sf.ehcache.config.Configuration configuration = new net.sf.ehcache.config.Configuration();
-      configuration.addCache(cacheConfiguration);
-      return configuration;
-   }
+	private net.sf.ehcache.config.Configuration getCacheConfiguration() {
+		CacheConfiguration cacheConfiguration = new CacheConfiguration();
+		cacheConfiguration.setName(CUSTOMER_CACHED_NAME);
+		cacheConfiguration.setMemoryStoreEvictionPolicy(LRU.name());
+		cacheConfiguration.setMaxEntriesLocalHeap(MAXIMUM_ENTRIES_LOCAL_HEAP);
 
-   public CacheResolver cacheResolver() {
-      return null;
-   }
+		net.sf.ehcache.config.Configuration configuration = new net.sf.ehcache.config.Configuration();
+		configuration.addCache(cacheConfiguration);
+		return configuration;
+	}
 
-   @Override
-   @Bean
-   public KeyGenerator keyGenerator() {
-      return new SimpleKeyGenerator();
-   }
+	@Override
+	public CacheResolver cacheResolver() {
+		return null;
+	}
 
-   public CacheErrorHandler errorHandler() {
-      return null;
-   }
+	@Override
+	@Bean
+	public KeyGenerator keyGenerator() {
+		return new SimpleKeyGenerator();
+	}
+
+	@Override
+	public CacheErrorHandler errorHandler() {
+		return null;
+	}
 }
